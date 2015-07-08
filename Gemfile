@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 
 gem 'rails'
 gem 'activejob'
+gem 'test-unit'
 
 group :development, :test do
   gem 'sqlite3'
