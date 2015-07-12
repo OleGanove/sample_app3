@@ -8,6 +8,10 @@ describe "Authentication" do
 
     it { should have_content('Sign in') }
     it { should have_title("Sign in") }
+    it { should_not have_link('Users') }
+    it { should_not have_link('Profile') }
+    it { should_not have_link('Settings') }
+    it { should_not have_link('Sign out') }
   end
 
 
@@ -36,7 +40,7 @@ describe "Authentication" do
       #end
 
       it { should have_title(user.name) }
-      it { should have_link('Users',       href: users_path) }
+      it { should have_link('Users',        href: users_path) }
       it { should have_link('Profile',	   	href: user_path(user)) }
       it { should have_link('Settings',     href: edit_user_path(user)) }
       it { should have_link('Sign out', 	  href: signout_path) }
@@ -50,6 +54,31 @@ describe "Authentication" do
   end
 
   describe "authorization" do
+    describe "as signed-in user" do
+      let(:user) { FactoryGirl.create(:user) }
+      before { sign_in user, no_capybara:true }
+
+      describe "cannot access #new action" do
+        before { get new_user_path }
+        specify { response.should redirect_to(root_path) }
+      end
+
+      describe "cannot access #create action" do
+        before { post users_path(user) }
+        specify { response.should redirect_to(root_path) }
+      end
+    end
+
+    describe "as admin user" do
+      let(:admin) { FactoryGirl.create(:admin) }
+      before { sign_in admin, no_capybara: true }
+
+      describe "should not be able to delete themselves via #destroy" do
+        specify do
+          expect { delete user_path(admin).not_to change(User, :count).by(-1) }
+        end
+      end
+    end
 
     describe "for non-signed-in users" do
       let(:user) { FactoryGirl.create(:user) }
@@ -57,9 +86,10 @@ describe "Authentication" do
       describe "when attempting to visit a protected page" do
         before do
           visit edit_user_path(user)
-          fill_in "Email",    with: user.email
-          fill_in "Password", with: user.password
-          click_button "Sign in"
+          #fill_in "Email",    with: user.email
+          #fill_in "Password", with: user.password
+          #click_button "Sign in"
+          sign_in user
         end
 
         describe "after signing in" do
