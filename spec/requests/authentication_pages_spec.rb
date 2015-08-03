@@ -68,6 +68,12 @@ describe "Authentication" do
         before { post users_path(user) }
         specify { response.should redirect_to(root_path) }
       end
+
+      describe "cannot delete other user's microposts" do
+        let(:other_user) { FactoryGirl.create(:user) }
+        before { visit user_path(other_user) }
+        it { should_not have_link('delete') }
+      end
     end
 
     describe "as admin user" do
